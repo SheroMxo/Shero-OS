@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shero.os - RGB Edition</title>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
+            --accent: #ff0055;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100vh; overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #000; color: white;
+        }
+
+        /* --- شاشة الإقلاع --- */
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a0008 0%, #000 100%);
+            z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; transition: opacity 1.5s ease;
+        }
+
+        .shero-logo {
+            font-size: 80px; font-weight: 900; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 10px;
+            text-shadow: 0 0 50px var(--accent); margin-bottom: 20px;
+        }
+
+        /* --- سطح المكتب --- */
+        #desktop {
+            display: none; width: 100%; height: 100vh;
+            background: url('https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover; background-position: center;
+            position: relative; padding: 25px; flex-direction: column;
+            flex-wrap: wrap; align-content: flex-start; gap: 20px;
+            transition: background 0.5s ease;
+        }
+
+        /* الساعة المركزية */
+        #central-clock {
+            position: absolute; top: 20%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; pointer-events: none; z-index: 1;
+            background: rgba(0,0,0,0.2); padding: 20px 40px; border-radius: 30px;
+            backdrop-filter: blur(10px); border: 1px solid var(--border);
+        }
+        #big-time { font-size: 80px; font-weight: 200; margin: 0; line-height: 1; }
+        #big-date { font-size: 18px; color: #ddd; margin-top: 10px; letter-spacing: 2px; }
+
+        /* الأيقونات */
+        .icon {
+            width: 95px; height: 110px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 15px;
+            cursor: pointer; transition: 0.3s; z-index: 10;
+        }
+        .icon:hover { background: var(--glass); backdrop-filter: blur(8px); transform: scale(1.05); }
+        .icon-img { font-size: 45px; margin-bottom: 8px; }
+        .icon span { font-size: 13px; font-weight: 500; text-shadow: 1px 1px 5px black; }
+
+        /* النوافذ */
+        .window {
+            position: absolute; width: 600px; height: 450px;
+            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 18px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column; z-index: 100;
+        }
+
+        .win-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: move; }
+        .win-controls { display: flex; gap: 10px; flex-direction: row-reverse; }
+        .dot { width: 13px; height: 13px; border-radius: 50%; cursor: pointer; }
+        .close { background: #ff5f56; }
+
+        /* شريط المهام السفلي */
+        .taskbar {
+            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+            height: 60px; min-width: 120px; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(25px); border-radius: 30px;
+            border: 1px solid var(--border); display: flex;
+            align-items: center; justify-content: center; padding: 0 20px; z-index: 1000;
+        }
+
+        /* زر S بتقنية RGB */
+        .shero-btn-rgb { 
+            font-size: 32px; font-weight: 900; cursor: pointer;
+            animation: rgbText 5s infinite linear;
+            filter: drop-shadow(0 0 8px currentColor);
+            user-select: none;
+        }
+
+        @keyframes rgbText {
+            0% { color: #ff0000; }
+            20% { color: #ff00ff; }
+            40% { color: #0000ff; }
+            60% { color: #00ffff; }
+            80% { color: #00ff00; }
+            100% { color: #ff0000; }
+        }
+
+        #snake-canvas { border: 2px solid #333; background: #000; }
+    </style>
+</head>
+<body>
+
+    <div id="boot-screen">
+        <div class="shero-logo">Shero.os</div>
+        <div style="width: 250px; height: 2px; background: #222; position: relative; overflow: hidden;">
+            <div style="position: absolute; width: 100%; height: 100%; background: var(--accent); animation: loading 2.5s infinite;" id="load-bar"></div>
+        </div>
+    </div>
+
+    <div id="desktop">
+        <div id="central-clock">
+            <p id="big-time">00:00</p>
+            <p id="big-date">الأحد، 21 فبراير</p>
+        </div>
+
+        <div class="icon" onclick="openApp('snake', '🐍', 'لعبة الثعبان')">
+            <div class="icon-img">🐍</div>
+            <span>لعبة الثعبان</span>
+        </div>
+        <div class="icon" onclick="openApp('wallpaper', '🖼️', 'الخلفية')">
+            <div class="icon-img">🖼️</div>
+            <span>تغيير الخلفية</span>
+        </div>
+        <div class="icon" onclick="openApp('terminal', '📟', 'Shero Terminal')">
+            <div class="icon-img">📟</div>
+            <span>Terminal</span>
+        </div>
+
+        <div class="taskbar">
+            <div class="shero-btn-rgb" onclick="alert('Shero.os v2.0 RGB')">S</div>
+        </div>
+    </div>
+
+    <script>
+        // مصفوفة خلفيات
+        const wallpapers = [
+            'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&w=1350&q=80',
+            'https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=1350&q=80',
+            'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1350&q=80',
+            'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1350&q=80'
+        ];
+        let wallIdx = 0;
+
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('boot-screen').style.display = 'none';
+                    document.getElementById('desktop').style.display = 'flex';
+                }, 1000);
+            }, 3000);
+            updateClock();
+            setInterval(updateClock, 1000);
+        };
+
+        function updateClock() {
+            const d = new Date();
+            const timeStr = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('big-time').innerText = timeStr;
+            document.getElementById('big-date').innerText = d.toLocaleDateString('ar-EG', options);
+        }
+
+        let zIdx = 1000;
+        function openApp(id, icon, title) {
+            if (id === 'wallpaper') {
+                wallIdx = (wallIdx + 1) % wallpapers.length;
+                document.getElementById('desktop').style.backgroundImage = `url('${wallpapers[wallIdx]}')`;
+                return;
+            }
+            if (document.getElementById('win-' + id)) return;
+
+            const win = document.createElement('div');
+            win.id = 'win-' + id;
+            win.className = 'window';
+            win.style.left = '20%'; win.style.top = '25%';
+            win.style.zIndex = ++zIdx;
+
+            let body = (id === 'snake') ? `<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; background:#000;"><canvas id="snake-canvas" width="400" height="300"></canvas></div>` : `<div style="padding:30px;"><h2>${title}</h2><p>Shero.os RGB Template</p></div>`;
+
+            win.innerHTML = `<div class="win-header" onmousedown="drag(this.parentElement)"><div class="win-controls"><div class="dot close" onclick="document.getElementById('win-${id}').remove()"></div></div><div style="font-size:14px; font-weight:bold;">${icon} ${title}</div></div><div class="win-body">${body}</div>`;
+            document.body.appendChild(win);
+            if(id === 'snake') startSnake();
+        }
+
+        function drag(el) {
+            el.onmousedown = (e) => {
+                let p3 = e.clientX, p4 = e.clientY;
+                el.style.zIndex = ++zIdx;
+                document.onmouseup = () => { document.onmouseup = null; document.onmousemove = null; };
+                document.onmousemove = (e) => {
+                    el.style.top = (el.offsetTop - (p4 - e.clientY)) + "px";
+                    el.style.left = (el.offsetLeft - (p3 - e.clientX)) + "px";
+                    p3 = e.clientX; p4 = e.clientY;
+                };
+            };
+        }
+
+        function startSnake() {
+            const canvas = document.getElementById('snake-canvas');
+            const ctx = canvas.getContext('2d');
+            let box = 20, snake = [{x: 9 * box, y: 10 * box}], food = { x: Math.floor(Math.random()*19+1)*box, y: Math.floor(Math.random()*14+1)*box }, dir;
+            document.onkeydown = (e) => {
+                if(e.keyCode == 37 && dir != "RIGHT") dir = "LEFT";
+                else if(e.keyCode == 38 && dir != "DOWN") dir = "UP";
+                else if(e.keyCode == 39 && dir != "LEFT") dir = "RIGHT";
+                else if(e.keyCode == 40 && dir != "UP") dir = "DOWN";
+            };
+            let game = setInterval(() => {
+                ctx.fillStyle = "black"; ctx.fillRect(0,0,400,300);
+                for(let i=0; i<snake.length; i++){ ctx.fillStyle = (i==0) ? "#ff0055" : "white"; ctx.fillRect(snake[i].x, snake[i].y, box, box); }
+                ctx.fillStyle = "gold"; ctx.fillRect(food.x, food.y, box, box);
+                let hX = snake[0].x, hY = snake[0].y;
+                if(dir == "LEFT") hX -= box; if(dir == "UP") hY -= box; if(dir == "RIGHT") hX += box; if(dir == "DOWN") hY += box;
+                if(hX == food.x && hY == food.y) food = { x: Math.floor(Math.random()*19+1)*box, y: Math.floor(Math.random()*14+1)*box }; else snake.pop();
+                if(hX<0 || hX>=400 || hY<0 || hY>=300) clearInterval(game);
+                snake.unshift({x: hX, y: hY});
+            }, 100);
+        }
+    </script>
+</body>
+</html>
